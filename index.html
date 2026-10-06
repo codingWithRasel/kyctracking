@@ -1,0 +1,2202 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KYC Paper Tracking System</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, sans-serif;
+      }
+      body {
+        background: #f0f2f5;
+        color: #333;
+        padding: 20px;
+        min-height: 100vh;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      /* Loading */
+      .loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #f0f2f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 14px;
+        z-index: 9999;
+      }
+      .spinner {
+        width: 44px;
+        height: 44px;
+        border: 4px solid #ddd;
+        border-top-color: #1a73e8;
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .loading-screen p {
+        color: #666;
+        font-size: 14px;
+      }
+
+      /* Login */
+      .login-box {
+        max-width: 400px;
+        margin: 80px auto;
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      }
+      .login-box h2 {
+        text-align: center;
+        margin-bottom: 6px;
+        color: #333;
+      }
+      .login-box .subtitle {
+        text-align: center;
+        color: #888;
+        font-size: 13px;
+        margin-bottom: 22px;
+      }
+      .login-box input {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 15px;
+      }
+      .login-box input:focus {
+        border-color: #1a73e8;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+      }
+      .login-box button {
+        width: 100%;
+        padding: 12px;
+        background: #1a73e8;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .login-box button:hover {
+        background: #1557b0;
+      }
+      .login-box button:disabled {
+        background: #93b8e8;
+        cursor: not-allowed;
+      }
+      .login-box .error-msg {
+        color: #c5221f;
+        font-size: 13px;
+        text-align: center;
+        margin-top: 10px;
+        display: none;
+        padding: 8px;
+        background: #fce8e6;
+        border-radius: 6px;
+      }
+
+      /* Header */
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: white;
+        padding: 12px 18px;
+        border-radius: 12px;
+        margin-bottom: 14px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      }
+      .header .user-box {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .header .user-info {
+        font-weight: 600;
+        color: #1a73e8;
+      }
+      .header .header-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .header button {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .btn-users {
+        background: #9334e6;
+        color: white;
+      }
+      .btn-users:hover {
+        background: #7a29c2;
+      }
+      .btn-logout {
+        background: #ea4335;
+        color: white;
+      }
+      .btn-logout:hover {
+        background: #d33426;
+      }
+      .btn-back-home {
+        background: #1a73e8;
+        color: white;
+      }
+      .btn-back-home:hover {
+        background: #1557b0;
+      }
+
+      /* Avatar */
+      .avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 15px;
+        background: #1a73e8;
+        overflow: hidden;
+        border: 2px solid #fff;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        flex-shrink: 0;
+      }
+      .avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .avatar.supervisor {
+        background: #9334e6;
+      }
+
+      .card {
+        background: white;
+        padding: 14px 18px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      }
+      .card h3 {
+        margin-bottom: 12px;
+        color: #333;
+        font-size: 15px;
+      }
+
+      /* New entry button */
+      .new-entry-btn {
+        padding: 10px 20px;
+        background: #34a853;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .new-entry-btn:hover {
+        background: #2d8e47;
+      }
+
+      /* Modal */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 20px;
+        animation: fadeIn 0.15s ease;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      @keyframes slideUp {
+        from {
+          transform: translateY(20px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .modal {
+        background: white;
+        border-radius: 14px;
+        padding: 24px 26px;
+        width: 100%;
+        max-width: 520px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+        animation: slideUp 0.2s ease;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+      .modal h3 {
+        margin-bottom: 18px;
+        color: #333;
+        font-size: 17px;
+      }
+      .modal .form-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+        margin-bottom: 20px;
+      }
+      .modal .form-grid label {
+        display: block;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 5px;
+      }
+      .modal .form-grid input {
+        width: 100%;
+        padding: 11px 13px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 14px;
+      }
+      .modal .form-grid input:focus {
+        border-color: #1a73e8;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+      }
+      .modal .form-grid .hint {
+        font-size: 11.5px;
+        color: #888;
+        margin-top: 4px;
+      }
+      .modal .current-avatar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 8px;
+      }
+      .modal .current-avatar .avatar {
+        width: 52px;
+        height: 52px;
+        font-size: 20px;
+      }
+
+      .modal-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+      }
+      .modal-actions button {
+        padding: 10px 22px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+        border: none;
+      }
+      .btn-cancel {
+        background: #f0f2f5;
+        color: #555;
+      }
+      .btn-cancel:hover {
+        background: #e4e6eb;
+      }
+      .btn-submit {
+        background: #34a853;
+        color: white;
+      }
+      .btn-submit:hover {
+        background: #2d8e47;
+      }
+      .btn-submit:disabled {
+        background: #93c9a8;
+        cursor: not-allowed;
+      }
+
+      /* Summary */
+      .summary-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+      }
+      .summary-header h3 {
+        margin: 0;
+        font-size: 15px;
+      }
+      .summary-header .search-wrap {
+        position: relative;
+        flex: 1;
+        min-width: 220px;
+        max-width: 380px;
+      }
+      .summary-header .search-wrap input {
+        width: 100%;
+        padding: 8px 12px 8px 34px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 13.5px;
+      }
+      .summary-header .search-wrap input:focus {
+        border-color: #1a73e8;
+        outline: none;
+      }
+      .summary-header .search-wrap::before {
+        content: "🔍";
+        position: absolute;
+        left: 11px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 13px;
+        opacity: 0.6;
+      }
+      .summary-header select {
+        padding: 8px 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 13.5px;
+        background: white;
+        cursor: pointer;
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .summary-item {
+        padding: 8px 10px;
+        border-radius: 8px;
+        text-align: center;
+        border: 1px solid #eee;
+        background: #fafbfc;
+        transition: 0.15s;
+        cursor: pointer;
+      }
+      .summary-item:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      }
+      .summary-item.active {
+        border-color: #1a73e8;
+        background: #e8f0fe;
+      }
+      .summary-num {
+        font-size: 17px;
+        font-weight: 700;
+        line-height: 1.1;
+      }
+      .summary-label {
+        font-size: 10.5px;
+        color: #666;
+        font-weight: 600;
+        margin-top: 2px;
+      }
+      .summary-item.total .summary-num {
+        color: #1a73e8;
+      }
+      .summary-item.received .summary-num {
+        color: #0b8043;
+      }
+      .summary-item.mail .summary-num {
+        color: #34a853;
+      }
+      .summary-item.portal .summary-num {
+        color: #9334e6;
+      }
+      .summary-item.tm .summary-num {
+        color: #137333;
+      }
+      .summary-item.problem .summary-num {
+        color: #c5221f;
+      }
+
+      .filters-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+        padding-top: 10px;
+        border-top: 1px solid #eee;
+      }
+      .date-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .date-group label {
+        font-size: 12px;
+        color: #666;
+        font-weight: 600;
+      }
+      .date-group input[type="date"] {
+        padding: 6px 8px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 12.5px;
+        background: white;
+        cursor: pointer;
+      }
+      .date-group input[type="date"]:focus {
+        border-color: #1a73e8;
+        outline: none;
+      }
+      .clear-date-btn {
+        padding: 6px 10px;
+        background: #f0f2f5;
+        color: #555;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .clear-date-btn:hover {
+        background: #e4e6eb;
+      }
+
+      .filter-chips {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-left: auto;
+      }
+      .filter-chip {
+        padding: 5px 11px;
+        border-radius: 14px;
+        font-size: 12px;
+        border: 1px solid #ddd;
+        background: white;
+        cursor: pointer;
+        font-weight: 600;
+        color: #555;
+        user-select: none;
+      }
+      .filter-chip:hover {
+        border-color: #1a73e8;
+        color: #1a73e8;
+      }
+      .filter-chip.active {
+        background: #1a73e8;
+        color: white;
+        border-color: #1a73e8;
+      }
+
+      /* Table */
+      .entry-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13.5px;
+      }
+      .entry-table th,
+      .entry-table td {
+        padding: 10px 9px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+      }
+      .entry-table th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #555;
+        font-size: 12.5px;
+      }
+      .entry-table tbody tr {
+        cursor: pointer;
+        transition: 0.12s;
+      }
+      .entry-table tbody tr:hover {
+        background: #f8f9fa;
+      }
+      .entry-table tbody tr.has-problem {
+        background: #fff8f7;
+      }
+      .entry-table tbody tr.has-problem:hover {
+        background: #fce8e6;
+      }
+      .entry-table tbody tr.has-new {
+        background: #f8fbff;
+      }
+      .entry-table tbody tr.has-new:hover {
+        background: #e8f0fe;
+      }
+      .entry-table tbody tr.solved-row {
+        background: #f7fdf9;
+      }
+
+      .cell-agent-no {
+        font-weight: 600;
+        color: #1a73e8;
+      }
+      .cell-dso {
+        font-weight: 600;
+        color: #9334e6;
+      }
+      .cell-supervisor {
+        font-size: 12.5px;
+        color: #555;
+      }
+      .cell-date {
+        font-size: 12.5px;
+        color: #666;
+      }
+      .cell-preview {
+        font-size: 12.5px;
+        color: #555;
+        max-width: 280px;
+      }
+      .cell-preview strong {
+        color: #1a73e8;
+      }
+      .cell-preview .preview-empty {
+        color: #aaa;
+        font-style: italic;
+      }
+      .cell-status {
+        white-space: normal;
+        max-width: 220px;
+      }
+      .cell-num {
+        color: #888;
+        font-size: 12px;
+        width: 36px;
+      }
+
+      .badge-sm {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 700;
+        margin: 2px 3px 2px 0;
+        white-space: nowrap;
+      }
+      .badge-sm.open {
+        background: #fce8e6;
+        color: #c5221f;
+      }
+      .badge-sm.solved {
+        background: #e6f4ea;
+        color: #137333;
+      }
+      .badge-sm.new {
+        background: #e8f0fe;
+        color: #1a73e8;
+      }
+      .badge-sm.none {
+        background: #f0f2f5;
+        color: #888;
+      }
+      .badge-sm.progress {
+        background: #e6f4ea;
+        color: #137333;
+      }
+      .badge-sm.received {
+        background: #e6f4ea;
+        color: #0b8043;
+      }
+      .badge-sm.admin-role {
+        background: #fce8e6;
+        color: #c5221f;
+      }
+      .badge-sm.supervisor-role {
+        background: #e8f0fe;
+        color: #1a73e8;
+      }
+
+      /* Detail page */
+      .back-btn {
+        padding: 8px 16px;
+        background: #f0f2f5;
+        color: #1a73e8;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-bottom: 15px;
+        font-weight: 600;
+      }
+      .detail-header {
+        background: white;
+        padding: 18px 22px;
+        border-radius: 12px;
+        margin-bottom: 16px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      }
+      .detail-header h2 {
+        color: #1a73e8;
+        margin-bottom: 6px;
+      }
+      .detail-header .info-row {
+        font-size: 13px;
+        color: #666;
+        margin-top: 4px;
+      }
+      .detail-header .info-row strong {
+        color: #9334e6;
+      }
+
+      .status-checks {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+      .status-chip {
+        font-size: 12px;
+        padding: 4px 10px;
+        border-radius: 12px;
+        background: #f0f2f5;
+        color: #666;
+        cursor: pointer;
+        user-select: none;
+        border: 1px solid #eee;
+      }
+      .status-chip.on {
+        background: #e6f4ea;
+        color: #137333;
+        border-color: #a8dab5;
+        font-weight: 600;
+      }
+      .status-chip.on.received {
+        background: #e6f4ea;
+        color: #0b8043;
+        border-color: #8fce9f;
+      }
+      .status-chip.admin:hover {
+        border-color: #1a73e8;
+      }
+      .status-chip.locked {
+        cursor: default;
+      }
+
+      /* Chat */
+      .chat-box {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        height: 520px;
+      }
+      .chat-header {
+        padding: 14px 20px;
+        border-bottom: 1px solid #eee;
+        font-weight: 700;
+        color: #333;
+      }
+      .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px 20px;
+        background: #f8f9fb;
+      }
+      .msg {
+        max-width: 75%;
+        margin-bottom: 12px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        font-size: 14px;
+        line-height: 1.5;
+        position: relative;
+        word-wrap: break-word;
+      }
+      .msg.admin {
+        background: #e8f0fe;
+        color: #1a3a6e;
+        margin-left: auto;
+        border-bottom-right-radius: 3px;
+      }
+      .msg.supervisor {
+        background: #ffffff;
+        color: #333;
+        border: 1px solid #eee;
+        border-bottom-left-radius: 3px;
+      }
+      .msg .sender {
+        font-size: 11px;
+        font-weight: 700;
+        margin-bottom: 4px;
+        opacity: 0.8;
+      }
+      .msg .time {
+        font-size: 10px;
+        color: #999;
+        margin-top: 5px;
+        text-align: right;
+      }
+
+      .chat-input {
+        padding: 12px 16px;
+        border-top: 1px solid #eee;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .chat-input input[type="text"] {
+        flex: 1;
+        padding: 10px 14px;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        font-size: 14px;
+        outline: none;
+      }
+      .chat-input input[type="text"]:focus {
+        border-color: #1a73e8;
+      }
+      .chat-input .send-btn {
+        padding: 10px 20px;
+        background: #1a73e8;
+        color: white;
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .chat-input .send-btn:hover {
+        background: #1557b0;
+      }
+
+      .close-problem-btn {
+        padding: 10px 20px;
+        background: #34a853;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        margin-top: 10px;
+      }
+      .start-problem-btn {
+        padding: 10px 20px;
+        background: #ea4335;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        margin-top: 10px;
+      }
+
+      .empty-msg {
+        text-align: center;
+        padding: 40px;
+        color: #888;
+      }
+      .hidden {
+        display: none !important;
+      }
+
+      /* ============ Users Page ============ */
+      .users-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13.5px;
+      }
+      .users-table th,
+      .users-table td {
+        padding: 12px 10px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+        vertical-align: middle;
+      }
+      .users-table th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #555;
+        font-size: 12.5px;
+      }
+      .users-table tbody tr:hover {
+        background: #f8f9fa;
+      }
+      .users-table .cell-user {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .users-table .user-name {
+        font-weight: 600;
+        color: #333;
+      }
+      .users-table .user-email {
+        font-size: 11.5px;
+        color: #888;
+        margin-top: 2px;
+      }
+      .users-table .btn-sm {
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        border: none;
+        font-weight: 600;
+        font-size: 12px;
+      }
+      .btn-edit-user {
+        background: #1a73e8;
+        color: white;
+      }
+      .btn-edit-user:hover {
+        background: #1557b0;
+      }
+
+      /* Toast notification */
+      .toast {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: #1e1e1e;
+        color: #fff;
+        padding: 12px 22px;
+        border-radius: 8px;
+        font-size: 13.5px;
+        font-weight: 600;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+        transition:
+          transform 0.3s ease,
+          opacity 0.3s ease;
+        opacity: 0;
+        z-index: 2000;
+        max-width: 90vw;
+      }
+      .toast.show {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
+      .toast.success {
+        background: #137333;
+      }
+      .toast.error {
+        background: #c5221f;
+      }
+
+      @media (max-width: 640px) {
+        .summary-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+        .filter-chips {
+          margin-left: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Loading -->
+    <div id="loadingScreen" class="loading-screen">
+      <div class="spinner"></div>
+      <p>Loading system...</p>
+    </div>
+
+    <div class="container">
+      <!-- Login -->
+      <div id="loginPage" class="hidden">
+        <div class="login-box">
+          <h2>🔐 Login</h2>
+          <div class="subtitle">KYC Paper Tracking System</div>
+          <input
+            type="email"
+            id="loginEmail"
+            placeholder="Email address"
+            autocomplete="email"
+          />
+          <input
+            type="password"
+            id="loginPassword"
+            placeholder="Password"
+            autocomplete="current-password"
+          />
+          <button id="loginBtn" onclick="login()">Enter</button>
+          <div class="error-msg" id="loginError"></div>
+        </div>
+      </div>
+
+      <!-- Main app -->
+      <div id="appPage" class="hidden">
+        <div class="header">
+          <div class="user-box">
+            <div class="avatar" id="headerAvatar"></div>
+            <span class="user-info" id="currentUser"></span>
+          </div>
+          <div class="header-actions">
+            <button
+              class="btn-users hidden"
+              id="usersBtn"
+              onclick="openUsersPage()"
+            >
+              👥 Users
+            </button>
+            <button
+              class="btn-back-home hidden"
+              id="backHomeBtn"
+              onclick="closeUsersPage()"
+            >
+              ← Back
+            </button>
+            <button class="btn-logout" onclick="logout()">Logout</button>
+          </div>
+        </div>
+
+        <!-- Home view -->
+        <div id="homeView">
+          <div class="card hidden" id="summaryCard">
+            <div class="summary-header">
+              <h3>📊 Summary</h3>
+              <div class="search-wrap">
+                <input
+                  type="text"
+                  id="searchBox"
+                  placeholder="Search by agent name, number or DSO..."
+                  oninput="renderHome()"
+                />
+              </div>
+              <select id="supervisorFilter" onchange="renderHome()">
+                <option value="">All Supervisors</option>
+              </select>
+            </div>
+
+            <div class="summary-grid" id="summaryGrid"></div>
+
+            <div class="filters-row">
+              <div class="date-group">
+                <label>From</label>
+                <input type="date" id="dateFrom" onchange="renderHome()" />
+                <label>To</label>
+                <input type="date" id="dateTo" onchange="renderHome()" />
+                <button class="clear-date-btn" onclick="clearDates()">
+                  Clear
+                </button>
+              </div>
+
+              <div class="filter-chips" id="filterChips">
+                <span
+                  class="filter-chip active"
+                  data-filter="all"
+                  onclick="setFilter('all', this)"
+                  >All</span
+                >
+                <span
+                  class="filter-chip"
+                  data-filter="received"
+                  onclick="setFilter('received', this)"
+                  >✔ Received</span
+                >
+                <span
+                  class="filter-chip"
+                  data-filter="mail"
+                  onclick="setFilter('mail', this)"
+                  >✔ Mail</span
+                >
+                <span
+                  class="filter-chip"
+                  data-filter="portal"
+                  onclick="setFilter('portal', this)"
+                  >✔ Portal</span
+                >
+                <span
+                  class="filter-chip"
+                  data-filter="tm"
+                  onclick="setFilter('tm', this)"
+                  >✔ TM</span
+                >
+                <span
+                  class="filter-chip"
+                  data-filter="problem"
+                  onclick="setFilter('problem', this)"
+                  >⚠ Problem</span
+                >
+                <span
+                  class="filter-chip"
+                  data-filter="solved"
+                  onclick="setFilter('solved', this)"
+                  >✔ Solved</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 12px;
+                flex-wrap: wrap;
+                gap: 10px;
+              "
+            >
+              <h3 id="listTitle" style="margin: 0">📋 Paper Tracking List</h3>
+              <button
+                class="new-entry-btn hidden"
+                id="newEntryBtn"
+                onclick="openEntryModal()"
+              >
+                ➕ New Entry
+              </button>
+            </div>
+            <div id="entryList"></div>
+          </div>
+        </div>
+
+        <!-- Detail view -->
+        <div id="detailView" class="hidden">
+          <button class="back-btn" onclick="goHome()">← Back</button>
+
+          <div class="detail-header">
+            <h2 id="dAgentName"></h2>
+            <div class="info-row">DSO: <strong id="dDSO"></strong></div>
+            <div class="info-row">
+              Agent Number:
+              <strong id="dAgentNo" style="color: #1a73e8"></strong>
+            </div>
+            <div class="info-row">Date: <span id="dDate"></span></div>
+            <div class="info-row">
+              Supervisor: <span id="dSupervisor"></span>
+            </div>
+
+            <div class="status-checks" id="statusChecks"></div>
+            <div style="margin-top: 12px" id="problemActionArea"></div>
+          </div>
+
+          <div class="chat-box">
+            <div class="chat-header">💬 Conversation</div>
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="chat-input">
+              <input
+                type="text"
+                id="chatInput"
+                placeholder="Type a message..."
+                onkeydown="if (event.key === 'Enter') sendMessage();"
+              />
+              <button class="send-btn" onclick="sendMessage()">Send</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Users page (admin only) -->
+        <div id="usersView" class="hidden">
+          <div class="card">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 14px;
+                flex-wrap: wrap;
+                gap: 10px;
+              "
+            >
+              <h3 style="margin: 0">👥 User Management</h3>
+              <div style="font-size: 12.5px; color: #888">
+                Edit names and photos
+              </div>
+            </div>
+            <div id="usersList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- New Entry Modal -->
+    <div
+      id="entryModal"
+      class="modal-overlay hidden"
+      onclick="if (event.target === this) closeEntryModal();"
+    >
+      <div class="modal" onclick="event.stopPropagation()">
+        <h3>➕ New KYC Paper Entry</h3>
+        <div class="form-grid">
+          <div>
+            <label>Date</label>
+            <input type="date" id="inpDate" />
+          </div>
+          <div>
+            <label>DSO</label>
+            <input type="text" id="inpDSO" placeholder="e.g. 374/399" />
+          </div>
+          <div>
+            <label>Agent Number</label>
+            <input
+              type="text"
+              id="inpAgentNo"
+              placeholder="Enter agent number"
+            />
+          </div>
+          <div>
+            <label>Agent Name</label>
+            <input
+              type="text"
+              id="inpAgentName"
+              placeholder="Enter agent name"
+            />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeEntryModal()">Cancel</button>
+          <button
+            class="btn-submit"
+            id="submitEntryBtn"
+            onclick="submitEntry()"
+          >
+            Submit
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div
+      id="editUserModal"
+      class="modal-overlay hidden"
+      onclick="if (event.target === this) closeEditUserModal();"
+    >
+      <div class="modal" onclick="event.stopPropagation()">
+        <h3>✏️ Edit User</h3>
+        <div class="current-avatar">
+          <div class="avatar" id="editUserAvatar"></div>
+          <div>
+            <div
+              style="font-weight: 600; color: #333; font-size: 14px"
+              id="editUserEmail"
+            >
+              —
+            </div>
+            <div style="font-size: 11.5px; color: #888; margin-top: 2px">
+              Editing user profile
+            </div>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div>
+            <label>Display Name</label>
+            <input
+              type="text"
+              id="editUserName"
+              placeholder="Enter display name"
+            />
+          </div>
+          <div>
+            <label>Avatar URL</label>
+            <input
+              type="text"
+              id="editUserAvatarURL"
+              placeholder="https://i.imgur.com/xxxx.jpg"
+            />
+            <div class="hint">
+              Leave empty to use the first letter of the name
+            </div>
+          </div>
+          <div>
+            <label>Role</label>
+            <input
+              type="text"
+              id="editUserRole"
+              disabled
+              style="background: #f0f2f5; color: #888"
+            />
+            <div class="hint">Role cannot be changed here.</div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeEditUserModal()">
+            Cancel
+          </button>
+          <button
+            class="btn-submit"
+            id="saveUserBtn"
+            onclick="saveUserChanges()"
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+      import {
+        getAuth,
+        signInWithEmailAndPassword,
+        signOut,
+        onAuthStateChanged,
+        setPersistence,
+        browserLocalPersistence,
+      } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+      import {
+        getFirestore,
+        collection,
+        doc,
+        addDoc,
+        updateDoc,
+        getDoc,
+        onSnapshot,
+        query,
+        orderBy,
+        serverTimestamp,
+      } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+      // ==================== Firebase Config ====================
+      const firebaseConfig = {
+        apiKey: "AIzaSyC6sBAmq0QoIMCaQoX6QaSe4T92Cz2-oVI",
+        authDomain: "kyc-tracking.firebaseapp.com",
+        projectId: "kyc-tracking",
+        storageBucket: "kyc-tracking.firebasestorage.app",
+        messagingSenderId: "813267706055",
+        appId: "1:813267706055:web:2dc52be13b4d740d2b5ee2",
+        measurementId: "G-H8MK2KHBRS",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      // ==================== State ====================
+      let currentUserEmail = null;
+      let currentRole = null;
+      let currentDisplayName = null;
+      let currentAvatarURL = "";
+      let currentEntryId = null;
+      let currentFilter = "all";
+      let allPapers = [];
+      let allUsers = [];
+      let unsubscribePapers = null;
+      let unsubscribeUsers = null;
+      let editingUserEmail = null;
+
+      // ==================== Auth ====================
+      setPersistence(auth, browserLocalPersistence).catch(console.error);
+
+      onAuthStateChanged(auth, async (user) => {
+        document.getElementById("loadingScreen").classList.add("hidden");
+        if (user) {
+          try {
+            const userSnap = await getDoc(doc(db, "users", user.email));
+            if (!userSnap.exists()) {
+              await signOut(auth);
+              document.getElementById("loginPage").classList.remove("hidden");
+              showLoginError("This email is not authorized. Contact admin.");
+              return;
+            }
+            const profile = userSnap.data();
+            currentUserEmail = user.email;
+            currentRole = profile.role || "supervisor";
+            currentDisplayName =
+              profile.displayName || user.email.split("@")[0];
+            currentAvatarURL = profile.avatarURL || "";
+            startApp();
+          } catch (e) {
+            console.error(e);
+            await signOut(auth);
+            document.getElementById("loginPage").classList.remove("hidden");
+            showLoginError("Failed to load profile. Try again.");
+          }
+        } else {
+          document.getElementById("loginPage").classList.remove("hidden");
+        }
+      });
+
+      async function login() {
+        const email = document
+          .getElementById("loginEmail")
+          .value.trim()
+          .toLowerCase();
+        const password = document.getElementById("loginPassword").value;
+        const btn = document.getElementById("loginBtn");
+        const err = document.getElementById("loginError");
+
+        err.style.display = "none";
+        if (!email || !password) {
+          showLoginError("Please enter email and password");
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = "Logging in...";
+
+        try {
+          await signInWithEmailAndPassword(auth, email, password);
+        } catch (e) {
+          console.error(e);
+          let msg = "Login failed. Please try again.";
+          if (
+            e.code === "auth/wrong-password" ||
+            e.code === "auth/invalid-credential"
+          )
+            msg = "Incorrect email or password.";
+          if (e.code === "auth/user-not-found") msg = "User not found.";
+          if (e.code === "auth/too-many-requests")
+            msg = "Too many attempts. Try again later.";
+          showLoginError(msg);
+          btn.disabled = false;
+          btn.textContent = "Enter";
+        }
+      }
+
+      function showLoginError(msg) {
+        const err = document.getElementById("loginError");
+        err.textContent = msg;
+        err.style.display = "block";
+      }
+
+      async function logout() {
+        if (unsubscribePapers) unsubscribePapers();
+        if (unsubscribeUsers) unsubscribeUsers();
+        await signOut(auth);
+        currentUserEmail = null;
+        currentRole = null;
+        currentDisplayName = null;
+        currentAvatarURL = "";
+        currentEntryId = null;
+        allPapers = [];
+        allUsers = [];
+        unsubscribePapers = null;
+        unsubscribeUsers = null;
+        document.getElementById("appPage").classList.add("hidden");
+        document.getElementById("loginPage").classList.remove("hidden");
+        document.getElementById("loginEmail").value = "";
+        document.getElementById("loginPassword").value = "";
+        document.getElementById("loginError").style.display = "none";
+      }
+
+      document
+        .getElementById("loginPassword")
+        .addEventListener("keydown", (e) => {
+          if (e.key === "Enter") login();
+        });
+      document.getElementById("loginEmail").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") document.getElementById("loginPassword").focus();
+      });
+
+      // ==================== Toast ====================
+      let toastTimer = null;
+      function showToast(msg, type = "success") {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.className = "toast show " + type;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          t.className = "toast " + type;
+        }, 3000);
+      }
+
+      // ==================== Avatar ====================
+      function renderAvatar(elementId, displayName, role, avatarURL) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        if (avatarURL) {
+          el.innerHTML = `<img src="${escapeHtml(avatarURL)}" alt="${escapeHtml(displayName)}"
+      onerror="this.parentElement.textContent='${escapeHtml((displayName || "?").charAt(0).toUpperCase())}'; this.parentElement.classList.toggle('supervisor', ${role === "supervisor"});">`;
+        } else {
+          el.textContent = (displayName || "?").charAt(0).toUpperCase();
+          el.classList.toggle("supervisor", role === "supervisor");
+        }
+      }
+
+      // ==================== Start App ====================
+      function startApp() {
+        document.getElementById("loadingScreen").classList.add("hidden");
+        document.getElementById("loginPage").classList.add("hidden");
+        document.getElementById("appPage").classList.remove("hidden");
+
+        document.getElementById("currentUser").textContent =
+          currentDisplayName +
+          " (" +
+          (currentRole === "admin" ? "Admin" : "Supervisor") +
+          ")";
+        renderAvatar(
+          "headerAvatar",
+          currentDisplayName,
+          currentRole,
+          currentAvatarURL,
+        );
+
+        // Show/hide buttons based on role
+        if (currentRole === "supervisor") {
+          document.getElementById("newEntryBtn").classList.remove("hidden");
+          document.getElementById("summaryCard").classList.add("hidden");
+          document.getElementById("usersBtn").classList.add("hidden"); // Supervisor: hidden
+          document.getElementById("listTitle").textContent = "📋 My Papers";
+        } else {
+          document.getElementById("newEntryBtn").classList.add("hidden");
+          document.getElementById("summaryCard").classList.remove("hidden");
+          document.getElementById("usersBtn").classList.remove("hidden"); // Admin: visible
+          document.getElementById("listTitle").textContent = "📋 All Papers";
+        }
+
+        goHome();
+        subscribeToPapers();
+      }
+
+      // ==================== Subscribe to Papers ====================
+      function subscribeToPapers() {
+        if (unsubscribePapers) unsubscribePapers();
+        const q = query(collection(db, "papers"), orderBy("createdAt", "desc"));
+        unsubscribePapers = onSnapshot(
+          q,
+          (snapshot) => {
+            allPapers = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+            if (currentEntryId) {
+              const stillExists = allPapers.find(
+                (p) => p.id === currentEntryId,
+              );
+              if (stillExists) renderDetail();
+              else goHome();
+            } else if (
+              document.getElementById("usersView").classList.contains("hidden")
+            ) {
+              renderHome();
+            }
+          },
+          (error) => console.error("Papers subscription error:", error),
+        );
+      }
+
+      // ==================== Subscribe to Users ====================
+      function subscribeToUsers() {
+        if (unsubscribeUsers) unsubscribeUsers();
+        unsubscribeUsers = onSnapshot(
+          collection(db, "users"),
+          (snapshot) => {
+            allUsers = snapshot.docs.map((d) => ({ email: d.id, ...d.data() }));
+            allUsers.sort((a, b) => a.email.localeCompare(b.email));
+            if (
+              !document.getElementById("usersView").classList.contains("hidden")
+            ) {
+              renderUsersPage();
+            }
+          },
+          (error) => console.error("Users subscription error:", error),
+        );
+      }
+
+      // ==================== Navigation ====================
+      function goHome() {
+        currentEntryId = null;
+        document.getElementById("homeView").classList.remove("hidden");
+        document.getElementById("detailView").classList.add("hidden");
+        document.getElementById("usersView").classList.add("hidden");
+
+        // Show Users button only for admin, hide Back button
+        if (currentRole === "admin") {
+          document.getElementById("usersBtn").classList.remove("hidden");
+        } else {
+          document.getElementById("usersBtn").classList.add("hidden");
+        }
+        document.getElementById("backHomeBtn").classList.add("hidden");
+
+        renderHome();
+      }
+
+      function openDetail(id) {
+        currentEntryId = id;
+        const paper = allPapers.find((p) => p.id === id);
+        if (!paper) return;
+
+        const unreadField =
+          currentRole === "admin" ? "unreadByAdmin" : "unreadBySupervisor";
+        if (paper[unreadField]) {
+          updateDoc(doc(db, "papers", id), { [unreadField]: false }).catch(
+            console.error,
+          );
+        }
+
+        document.getElementById("homeView").classList.add("hidden");
+        document.getElementById("detailView").classList.remove("hidden");
+        document.getElementById("usersView").classList.add("hidden");
+
+        if (currentRole === "admin") {
+          document.getElementById("usersBtn").classList.remove("hidden");
+        } else {
+          document.getElementById("usersBtn").classList.add("hidden");
+        }
+        document.getElementById("backHomeBtn").classList.add("hidden");
+
+        renderDetail();
+      }
+
+      function openUsersPage() {
+        if (currentRole !== "admin") return;
+        document.getElementById("homeView").classList.add("hidden");
+        document.getElementById("detailView").classList.add("hidden");
+        document.getElementById("usersView").classList.remove("hidden");
+        document.getElementById("usersBtn").classList.add("hidden");
+        document.getElementById("backHomeBtn").classList.remove("hidden");
+
+        if (!unsubscribeUsers) subscribeToUsers();
+        renderUsersPage();
+      }
+
+      function closeUsersPage() {
+        goHome();
+      }
+
+      // ==================== Filter ====================
+      function setFilter(f, el) {
+        currentFilter = f;
+        document
+          .querySelectorAll(".filter-chip")
+          .forEach((c) => c.classList.remove("active"));
+        el.classList.add("active");
+        renderHome();
+      }
+
+      function clearDates() {
+        document.getElementById("dateFrom").value = "";
+        document.getElementById("dateTo").value = "";
+        renderHome();
+      }
+
+      // ==================== Summary ====================
+      function renderSummary() {
+        if (currentRole !== "admin") return;
+
+        const total = allPapers.length;
+        const receivedCount = allPapers.filter((p) => p.received).length;
+        const mailCount = allPapers.filter((p) => p.mail).length;
+        const portalCount = allPapers.filter((p) => p.portal).length;
+        const tmCount = allPapers.filter((p) => p.tm).length;
+        const problemCount = allPapers.filter(
+          (p) => p.problemStatus === "open",
+        ).length;
+
+        const supFilter = document.getElementById("supervisorFilter");
+        const currentVal = supFilter.value;
+        const sups = [...new Set(allPapers.map((p) => p.supervisor))].sort();
+        supFilter.innerHTML =
+          '<option value="">All Supervisors</option>' +
+          sups
+            .map(
+              (s) =>
+                `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`,
+            )
+            .join("");
+        supFilter.value = currentVal;
+
+        document.getElementById("summaryGrid").innerHTML = `
+    <div class="summary-item total ${currentFilter === "all" ? "active" : ""}" onclick="setFilter('all', document.querySelector('[data-filter=all]'))">
+      <div class="summary-num">${total}</div>
+      <div class="summary-label">Total</div>
+    </div>
+    <div class="summary-item received ${currentFilter === "received" ? "active" : ""}" onclick="setFilter('received', document.querySelector('[data-filter=received]'))">
+      <div class="summary-num">${receivedCount}</div>
+      <div class="summary-label">✔ Received</div>
+    </div>
+    <div class="summary-item mail ${currentFilter === "mail" ? "active" : ""}" onclick="setFilter('mail', document.querySelector('[data-filter=mail]'))">
+      <div class="summary-num">${mailCount}</div>
+      <div class="summary-label">✔ Mail</div>
+    </div>
+    <div class="summary-item portal ${currentFilter === "portal" ? "active" : ""}" onclick="setFilter('portal', document.querySelector('[data-filter=portal]'))">
+      <div class="summary-num">${portalCount}</div>
+      <div class="summary-label">✔ Portal</div>
+    </div>
+    <div class="summary-item tm ${currentFilter === "tm" ? "active" : ""}" onclick="setFilter('tm', document.querySelector('[data-filter=tm]'))">
+      <div class="summary-num">${tmCount}</div>
+      <div class="summary-label">✔ TM Active</div>
+    </div>
+    <div class="summary-item problem ${currentFilter === "problem" ? "active" : ""}" onclick="setFilter('problem', document.querySelector('[data-filter=problem]'))">
+      <div class="summary-num">${problemCount}</div>
+      <div class="summary-label">⚠ Problem</div>
+    </div>
+  `;
+      }
+
+      // ==================== Home render ====================
+      function renderHome() {
+        if (!currentRole) return;
+        if (currentRole === "admin") renderSummary();
+
+        const container = document.getElementById("entryList");
+        let visible = allPapers.slice();
+
+        if (currentRole === "supervisor") {
+          visible = visible.filter(
+            (p) => p.supervisorEmail === currentUserEmail,
+          );
+        } else {
+          const q = (document.getElementById("searchBox").value || "")
+            .trim()
+            .toLowerCase();
+          const supVal = document.getElementById("supervisorFilter").value;
+          const dateFrom = document.getElementById("dateFrom").value;
+          const dateTo = document.getElementById("dateTo").value;
+
+          if (supVal) visible = visible.filter((p) => p.supervisor === supVal);
+          if (q) {
+            visible = visible.filter(
+              (p) =>
+                (p.agentName || "").toLowerCase().includes(q) ||
+                (p.agentNo || "").toLowerCase().includes(q) ||
+                (p.dso || "").toLowerCase().includes(q),
+            );
+          }
+          if (dateFrom) visible = visible.filter((p) => p.date >= dateFrom);
+          if (dateTo) visible = visible.filter((p) => p.date <= dateTo);
+
+          if (currentFilter === "received")
+            visible = visible.filter((p) => p.received);
+          if (currentFilter === "mail") visible = visible.filter((p) => p.mail);
+          if (currentFilter === "portal")
+            visible = visible.filter((p) => p.portal);
+          if (currentFilter === "tm") visible = visible.filter((p) => p.tm);
+          if (currentFilter === "problem")
+            visible = visible.filter((p) => p.problemStatus === "open");
+          if (currentFilter === "solved")
+            visible = visible.filter((p) => p.problemStatus === "solved");
+        }
+
+        if (visible.length === 0) {
+          container.innerHTML = '<div class="empty-msg">No papers found</div>';
+          return;
+        }
+
+        const rows = visible
+          .map((d, i) => {
+            const last =
+              d.messages && d.messages.length
+                ? d.messages[d.messages.length - 1]
+                : null;
+            let previewHtml =
+              '<span class="preview-empty">— No conversation —</span>';
+            if (last) {
+              const senderName =
+                last.sender === "admin"
+                  ? "Admin"
+                  : last.senderName || "Supervisor";
+              const text = last.text
+                ? escapeHtml(last.text).substring(0, 50) +
+                  (last.text.length > 50 ? "…" : "")
+                : "";
+              previewHtml = `<strong>${senderName}:</strong> ${text}`;
+            }
+
+            let statusBadges = "";
+            if (d.received)
+              statusBadges +=
+                '<span class="badge-sm received">✔ Received</span>';
+            if (d.mail)
+              statusBadges += '<span class="badge-sm progress">✔ Mail</span>';
+            if (d.portal)
+              statusBadges += '<span class="badge-sm progress">✔ Portal</span>';
+            if (d.tm)
+              statusBadges += '<span class="badge-sm progress">✔ TM</span>';
+            if (d.problemStatus === "open")
+              statusBadges += '<span class="badge-sm open">⚠ Problem</span>';
+            else if (d.problemStatus === "solved")
+              statusBadges += '<span class="badge-sm solved">✔ Solved</span>';
+            if (!statusBadges)
+              statusBadges = '<span class="badge-sm none">—</span>';
+
+            const hasNew =
+              currentRole === "admin" ? d.unreadByAdmin : d.unreadBySupervisor;
+            if (hasNew)
+              statusBadges += ' <span class="badge-sm new">● New</span>';
+
+            let rowCls = "";
+            if (d.problemStatus === "open") rowCls = "has-problem";
+            else if (d.problemStatus === "solved") rowCls = "solved-row";
+            if (hasNew) rowCls = "has-new";
+
+            const supCell =
+              currentRole === "admin"
+                ? `<td class="cell-supervisor">${escapeHtml(d.supervisor || "—")}</td>`
+                : "";
+
+            return `
+      <tr class="${rowCls}" onclick="openDetail('${d.id}')">
+        <td class="cell-num">${i + 1}</td>
+        <td class="cell-dso">${escapeHtml(d.dso || "—")}</td>
+        <td class="cell-agent-no">${escapeHtml(d.agentNo)}</td>
+        <td>${escapeHtml(d.agentName)}</td>
+        <td class="cell-date">${escapeHtml(d.date)}</td>
+        ${supCell}
+        <td class="cell-status">${statusBadges}</td>
+        <td class="cell-preview">${previewHtml}</td>
+      </tr>
+    `;
+          })
+          .join("");
+
+        const supHeader = currentRole === "admin" ? "<th>Supervisor</th>" : "";
+
+        container.innerHTML = `
+    <table class="entry-table">
+      <thead>
+        <tr>
+          <th>SL</th><th>DSO</th><th>Agent Number</th><th>Agent Name</th><th>Date</th>
+          ${supHeader}
+          <th>Status</th><th>Conversation Preview</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="font-size:12px; color:#888; margin-top:10px; text-align:right;">
+      Showing: <strong>${visible.length}</strong> entries
+    </div>
+  `;
+      }
+
+      // ==================== Users Page ====================
+      function renderUsersPage() {
+        if (currentRole !== "admin") return;
+        const container = document.getElementById("usersList");
+
+        if (allUsers.length === 0) {
+          container.innerHTML = '<div class="empty-msg">No users found</div>';
+          return;
+        }
+
+        const rows = allUsers
+          .map((u) => {
+            const avatarHtml = u.avatarURL
+              ? `<img src="${escapeHtml(u.avatarURL)}" alt=""
+          onerror="this.parentElement.textContent='${escapeHtml((u.displayName || "?").charAt(0).toUpperCase())}';">`
+              : escapeHtml((u.displayName || "?").charAt(0).toUpperCase());
+
+            const roleBadge =
+              u.role === "admin"
+                ? '<span class="badge-sm admin-role">Admin</span>'
+                : '<span class="badge-sm supervisor-role">Supervisor</span>';
+
+            const avatarClass =
+              u.role === "supervisor" ? "avatar supervisor" : "avatar";
+
+            return `
+      <tr>
+        <td>
+          <div class="cell-user">
+            <div class="${avatarClass}">${avatarHtml}</div>
+            <div>
+              <div class="user-name">${escapeHtml(u.displayName || "—")}</div>
+              <div class="user-email">${escapeHtml(u.email)}</div>
+            </div>
+          </div>
+        </td>
+        <td>${roleBadge}</td>
+        <td style="text-align:right;">
+          <button class="btn-sm btn-edit-user" onclick="openEditUser('${escapeHtml(u.email)}')">✏️ Edit</button>
+        </td>
+      </tr>
+    `;
+          })
+          .join("");
+
+        container.innerHTML = `
+    <table class="users-table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Role</th>
+          <th style="text-align:right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+      }
+
+      // ==================== Edit User ====================
+      function openEditUser(email) {
+        const user = allUsers.find((u) => u.email === email);
+        if (!user) return;
+
+        editingUserEmail = email;
+        document.getElementById("editUserEmail").textContent = email;
+        document.getElementById("editUserName").value = user.displayName || "";
+        document.getElementById("editUserAvatarURL").value =
+          user.avatarURL || "";
+        document.getElementById("editUserRole").value =
+          user.role || "supervisor";
+
+        renderAvatar(
+          "editUserAvatar",
+          user.displayName,
+          user.role,
+          user.avatarURL,
+        );
+
+        document.getElementById("editUserModal").classList.remove("hidden");
+        setTimeout(() => document.getElementById("editUserName").focus(), 100);
+      }
+
+      function closeEditUserModal() {
+        document.getElementById("editUserModal").classList.add("hidden");
+        editingUserEmail = null;
+      }
+
+      async function saveUserChanges() {
+        if (!editingUserEmail) return;
+
+        const newName = document.getElementById("editUserName").value.trim();
+        const newAvatar = document
+          .getElementById("editUserAvatarURL")
+          .value.trim();
+
+        if (!newName) {
+          showToast("Name cannot be empty", "error");
+          return;
+        }
+
+        const btn = document.getElementById("saveUserBtn");
+        btn.disabled = true;
+        btn.textContent = "Saving...";
+
+        try {
+          await updateDoc(doc(db, "users", editingUserEmail), {
+            displayName: newName,
+            avatarURL: newAvatar,
+          });
+          showToast("User updated successfully", "success");
+
+          // If editing own profile, update header
+          if (editingUserEmail === currentUserEmail) {
+            currentDisplayName = newName;
+            currentAvatarURL = newAvatar;
+            document.getElementById("currentUser").textContent =
+              newName +
+              " (" +
+              (currentRole === "admin" ? "Admin" : "Supervisor") +
+              ")";
+            renderAvatar("headerAvatar", newName, currentRole, newAvatar);
+          }
+
+          closeEditUserModal();
+        } catch (e) {
+          console.error(e);
+          showToast("Failed to update: " + e.message, "error");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Save";
+        }
+      }
+
+      // ==================== Detail render ====================
+      function renderDetail() {
+        const paper = allPapers.find((p) => p.id === currentEntryId);
+        if (!paper) {
+          goHome();
+          return;
+        }
+
+        document.getElementById("dAgentName").textContent = paper.agentName;
+        document.getElementById("dDSO").textContent = paper.dso || "—";
+        document.getElementById("dAgentNo").textContent = paper.agentNo;
+        document.getElementById("dDate").textContent = paper.date;
+        document.getElementById("dSupervisor").textContent =
+          paper.supervisor || "—";
+
+        const checks = document.getElementById("statusChecks");
+        const chip = (label, key, val, extraClass) => {
+          const clickable = currentRole === "admin";
+          return `<span class="status-chip ${val ? "on" : ""} ${extraClass || ""} ${clickable ? "admin" : "locked"}"
+      ${clickable ? `onclick="toggleStatus('${key}')"` : ""}>${val ? "✔ " : ""}${label}</span>`;
+        };
+        checks.innerHTML =
+          chip("Received", "received", paper.received, "received") +
+          chip("Mail Sent", "mail", paper.mail) +
+          chip("Reached Portal", "portal", paper.portal) +
+          chip("TM Active", "tm", paper.tm);
+
+        const area = document.getElementById("problemActionArea");
+        if (currentRole === "admin") {
+          if (paper.problemStatus === "open") {
+            area.innerHTML = `<button class="close-problem-btn" onclick="closeProblem()">✔ Close Problem</button>`;
+          } else {
+            area.innerHTML = `<button class="start-problem-btn" onclick="startProblem()">⚠ Report New Problem</button>`;
+          }
+        } else {
+          area.innerHTML = "";
+        }
+
+        renderMessages(paper.messages || []);
+      }
+
+      function renderMessages(messages) {
+        const box = document.getElementById("chatMessages");
+        if (!messages.length) {
+          box.innerHTML = '<div class="empty-msg">No conversation yet</div>';
+          return;
+        }
+
+        box.innerHTML = messages
+          .map((m) => {
+            const cls = m.sender === "admin" ? "admin" : "supervisor";
+            const senderName =
+              m.sender === "admin"
+                ? "Admin"
+                : escapeHtml(m.senderName || "Supervisor");
+            const text = m.text
+              ? escapeHtml(m.text).replace(/\n/g, "<br>")
+              : "";
+            const time = m.time
+              ? new Date(m.time).toLocaleString("en-GB", {
+                  dateStyle: "short",
+                  timeStyle: "short",
+                })
+              : "";
+            return `
+      <div class="msg ${cls}">
+        <div class="sender">${senderName}</div>
+        <div>${text}</div>
+        <div class="time">${time}</div>
+      </div>
+    `;
+          })
+          .join("");
+
+        box.scrollTop = box.scrollHeight;
+      }
+
+      // ==================== Status toggle ====================
+      async function toggleStatus(key) {
+        const paper = allPapers.find((p) => p.id === currentEntryId);
+        if (!paper) return;
+        try {
+          await updateDoc(doc(db, "papers", currentEntryId), {
+            [key]: !paper[key],
+          });
+        } catch (e) {
+          console.error(e);
+          showToast("Failed to update status", "error");
+        }
+      }
+
+      // ==================== Problem ====================
+      async function startProblem() {
+        const text = prompt("Describe the problem:");
+        if (!text || !text.trim()) return;
+        const paper = allPapers.find((p) => p.id === currentEntryId);
+        if (!paper) return;
+
+        const newMsg = {
+          sender: "admin",
+          senderName: "Admin",
+          text: text.trim(),
+          time: Date.now(),
+        };
+        const updatedMessages = [...(paper.messages || []), newMsg];
+
+        try {
+          await updateDoc(doc(db, "papers", currentEntryId), {
+            problemStatus: "open",
+            messages: updatedMessages,
+            unreadBySupervisor: true,
+          });
+        } catch (e) {
+          console.error(e);
+          showToast("Failed to update", "error");
+        }
+      }
+
+      async function closeProblem() {
+        if (!confirm("Close this problem?")) return;
+        const paper = allPapers.find((p) => p.id === currentEntryId);
+        if (!paper) return;
+
+        const newMsg = {
+          sender: "admin",
+          senderName: "Admin",
+          text: "✔ This problem has been marked as solved.",
+          time: Date.now(),
+        };
+        const updatedMessages = [...(paper.messages || []), newMsg];
+
+        try {
+          await updateDoc(doc(db, "papers", currentEntryId), {
+            problemStatus: "solved",
+            messages: updatedMessages,
+            unreadBySupervisor: true,
+          });
+        } catch (e) {
+          console.error(e);
+          showToast("Failed to update", "error");
+        }
+      }
+
+      // ==================== New Entry ====================
+      function openEntryModal() {
+        document.getElementById("inpDate").valueAsDate = new Date();
+        document.getElementById("inpDSO").value = "";
+        document.getElementById("inpAgentNo").value = "";
+        document.getElementById("inpAgentName").value = "";
+        document.getElementById("entryModal").classList.remove("hidden");
+        setTimeout(() => document.getElementById("inpDSO").focus(), 100);
+      }
+
+      function closeEntryModal() {
+        document.getElementById("entryModal").classList.add("hidden");
+      }
+
+      async function submitEntry() {
+        const date = document.getElementById("inpDate").value;
+        const dso = document.getElementById("inpDSO").value.trim();
+        const agentNo = document.getElementById("inpAgentNo").value.trim();
+        const agentName = document.getElementById("inpAgentName").value.trim();
+
+        if (!date || !dso || !agentNo || !agentName) {
+          showToast("Please fill in all fields", "error");
+          return;
+        }
+
+        const duplicate = allPapers.find((p) => p.agentNo === agentNo);
+        if (duplicate) {
+          if (
+            !confirm(
+              `Agent number ${agentNo} already exists (entered by ${duplicate.supervisor}). Add anyway?`,
+            )
+          )
+            return;
+        }
+
+        const btn = document.getElementById("submitEntryBtn");
+        btn.disabled = true;
+        btn.textContent = "Saving...";
+
+        try {
+          await addDoc(collection(db, "papers"), {
+            date,
+            dso,
+            agentNo,
+            agentName,
+            supervisor: currentDisplayName,
+            supervisorEmail: currentUserEmail,
+            received: false,
+            mail: false,
+            portal: false,
+            tm: false,
+            problemStatus: "none",
+            messages: [],
+            unreadByAdmin: true,
+            unreadBySupervisor: false,
+            createdAt: serverTimestamp(),
+          });
+          closeEntryModal();
+          showToast("Entry added successfully", "success");
+        } catch (e) {
+          console.error(e);
+          showToast("Failed to save entry: " + e.message, "error");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Submit";
+        }
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          closeEntryModal();
+          closeEditUserModal();
+        }
+      });
+
+      // ==================== Messaging ====================
+      async function sendMessage() {
+        const input = document.getElementById("chatInput");
+        const text = input.value.trim();
+        if (!text) return;
+
+        const paper = allPapers.find((p) => p.id === currentEntryId);
+        if (!paper) return;
+
+        const newMsg = {
+          sender: currentRole === "admin" ? "admin" : "supervisor",
+          senderName: currentDisplayName,
+          text: text,
+          time: Date.now(),
+        };
+        const updatedMessages = [...(paper.messages || []), newMsg];
+
+        const update = { messages: updatedMessages };
+        if (currentRole === "admin") update.unreadBySupervisor = true;
+        else update.unreadByAdmin = true;
+
+        input.value = "";
+
+        try {
+          await updateDoc(doc(db, "papers", currentEntryId), update);
+        } catch (e) {
+          console.error(e);
+          showToast("Failed to send message", "error");
+          input.value = text;
+        }
+      }
+
+      // ==================== Helpers ====================
+      function escapeHtml(s) {
+        if (s == null) return "";
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      // Global exposure
+      window.login = login;
+      window.logout = logout;
+      window.openDetail = openDetail;
+      window.goHome = goHome;
+      window.setFilter = setFilter;
+      window.clearDates = clearDates;
+      window.toggleStatus = toggleStatus;
+      window.startProblem = startProblem;
+      window.closeProblem = closeProblem;
+      window.openEntryModal = openEntryModal;
+      window.closeEntryModal = closeEntryModal;
+      window.submitEntry = submitEntry;
+      window.sendMessage = sendMessage;
+      window.renderHome = renderHome;
+      window.openUsersPage = openUsersPage;
+      window.closeUsersPage = closeUsersPage;
+      window.openEditUser = openEditUser;
+      window.closeEditUserModal = closeEditUserModal;
+      window.saveUserChanges = saveUserChanges;
+    </script>
+  </body>
+</html>
